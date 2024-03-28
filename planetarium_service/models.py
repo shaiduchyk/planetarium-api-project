@@ -1,3 +1,6 @@
+import pathlib
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
@@ -8,10 +11,17 @@ class CustomUser(AbstractUser):
     pass
 
 
+def movie_image_path(instance, filename) -> pathlib.Path:
+    filename = (f"slugify {instance.title}-{uuid.uuid4()}"
+                + pathlib.Path(filename).suffix)
+    return pathlib.Path("uploads/planetariums/") / pathlib.Path(filename)
+
+
 class PlanetariumDome(models.Model):
     name = models.CharField(max_length=63)
     rows = models.IntegerField()
     seats_in_row = models.IntegerField()
+    image = models.ImageField(upload_to=movie_image_path, null=True)
 
     @property
     def capacity(self) -> int:
@@ -35,6 +45,9 @@ class AstronomyShow(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        ordering = ["-title"]
+
 
 class ShowSession(models.Model):
     astronomy_show = models.ForeignKey(AstronomyShow, on_delete=models.CASCADE)
@@ -56,6 +69,9 @@ class Reservation(models.Model):
     def __str__(self):
         return f"{self.created_at} - {self.user}"
 
+    class Meta:
+        ordering = ["-created_at"]
+
 
 class Ticket(models.Model):
     row = models.IntegerField()
@@ -68,19 +84,25 @@ class Ticket(models.Model):
     )
 
     @staticmethod
-    def validate_ticket(row, seat, planetarium_dome, error_to_raise):
-        for ticket_attr_value, ticket_attr_name, cinema_hall_attr_name in [
+    def validate_ticket(row, seat, show_session, error_to_raise):
+        planetarium_dome = show_session.planetarium_dome
+        for (
+                ticket_attr_value,
+                ticket_attr_name,
+                planetarium_dome_attr_name
+        ) in [
             (row, "row", "rows"),
             (seat, "seat", "seats_in_row"),
         ]:
-            count_attrs = getattr(planetarium_dome, cinema_hall_attr_name)
+            count_attrs = getattr(planetarium_dome, planetarium_dome_attr_name)
             if not (1 <= ticket_attr_value <= count_attrs):
                 raise error_to_raise(
                     {
-                        ticket_attr_name: f"{ticket_attr_name} "
-                                          f"number must be in available range: "
-                                          f"(1, {cinema_hall_attr_name}): "
-                                          f"(1, {count_attrs})"
+                        ticket_attr_name:
+                            f"{ticket_attr_name} "
+                            f"number must be in available range: "
+                            f"(1, {planetarium_dome_attr_name}): "
+                            f"(1, {count_attrs})"
                     }
                 )
 
