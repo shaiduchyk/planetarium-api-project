@@ -18,11 +18,17 @@ class PlanetariumDomeImageSerializer(serializers.ModelSerializer):
 
 
 class PlanetariumDomeSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=False)
 
     class Meta:
         model = PlanetariumDome
-        fields = ("id", "name", "rows", "seats_in_row", "image")
-
+        fields = (
+            "id",
+            "name",
+            "rows",
+            "seats_in_row",
+            "image",
+        )
         read_only_fields = ("image",)
 
 
@@ -30,32 +36,36 @@ class ShowSessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShowSession
-        fields = "__all__"
+        fields = ("id", "astronomy_show", "planetarium_dome", "show_time")
 
 
 class AstronomyShowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AstronomyShow
-        fields = "__all__"
+        fields = ("id", "title", "description")
+
+
+class PlanetariumDomeDetailSerializer(PlanetariumDomeSerializer):
+    pass
 
 
 class ReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
-        fields = "__all__"
+        fields = ("id", "created_at", "user")
 
 
 class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
-        fields = "__all__"
+        fields = ("row", "seat", "show_session", "reservation")
 
 
 class ShowThemeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShowTheme
-        fields = "__all__"
+        fields = ("id", "name")
