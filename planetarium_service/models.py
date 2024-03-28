@@ -40,7 +40,8 @@ class ShowTheme(models.Model):
 
 class AstronomyShow(models.Model):
     title = models.CharField(max_length=63)
-    description = models.ManyToManyField(ShowTheme)
+    themes = models.ManyToManyField(ShowTheme)
+    description = models.TextField()
 
     def __str__(self):
         return self.title
@@ -57,7 +58,7 @@ class ShowSession(models.Model):
     show_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.astronomy_show
+        return str(self.astronomy_show.title)
 
 
 class Reservation(models.Model):
