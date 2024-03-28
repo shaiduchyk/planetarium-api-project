@@ -61,7 +61,7 @@ class ShowSessionListSerializer(ShowSessionSerializer):
 class ShowThemeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShowTheme
-        fields = ("name",)
+        fields = ("id", "name")
 
 
 class ShowThemeListSerializer(serializers.ModelSerializer):
@@ -126,7 +126,14 @@ class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
-        fields = ("id", "row", "seat", "show_session", "planetarium_dome")
+        fields = (
+            "id",
+            "row",
+            "seat",
+            "show_session",
+            "planetarium_dome",
+            "reservation"
+        )
 
 
 class TicketListSerializer(TicketSerializer):
@@ -134,15 +141,15 @@ class TicketListSerializer(TicketSerializer):
 
 
 class ReservationSerializer(serializers.ModelSerializer):
-    tickets = TicketSerializer(many=True)
 
     class Meta:
         model = Reservation
-        fields = ("id", "tickets", "created_at")
+        fields = ("id", "created_at", "user")
 
     def create(self, validated_data):
-        tickets_data = validated_data.pop("tickets")
         reservation = Reservation.objects.create(**validated_data)
-        for ticket_data in tickets_data:
-            Ticket.objects.create(reservation=reservation, **ticket_data)
         return reservation
+
+
+class ReservationListSerializer(ReservationSerializer):
+    tickets = TicketListSerializer(many=True, read_only=True)

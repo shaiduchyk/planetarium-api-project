@@ -1,6 +1,6 @@
 from django.contrib.admin import actions
 from django.db.models import Count, F
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, mixins, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -18,7 +18,7 @@ from planetarium_service.models import (
     Reservation,
     Ticket,
 )
-from planetarium_service.permissions import IsAdminOrIfAuthenticatedReadOnly
+
 from planetarium_service.serializers import (
     PlanetariumDomeSerializer,
     ShowSessionSerializer,
@@ -128,9 +128,14 @@ class ReservationPagination(PageNumberPagination):
     max_page_size = 100
 
 
-class ReservationViewSet(viewsets.ModelViewSet):
+class ReservationViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    GenericViewSet
+):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
+    pagination_class = ReservationPagination
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
@@ -138,5 +143,14 @@ class ReservationViewSet(viewsets.ModelViewSet):
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        return Ticket.objects.filter(reservation__user=self.request.user)
+
+    def perform_create(self, serializer):
+        reservation_id = self.request.data.get("reservation")
+        reservation = get_object_or_404(Reservation, id=reservation_id)
+        serializer.save(reservation=reservation)
