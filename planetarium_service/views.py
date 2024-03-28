@@ -5,8 +5,10 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from planetarium_service.models import (
     PlanetariumDome,
@@ -41,8 +43,8 @@ class PlanetariumDomeViewSet(
 ):
     queryset = PlanetariumDome.objects.all()
     serializer_class = PlanetariumDomeSerializer
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     @action(
         methods=["POST"],
@@ -89,8 +91,8 @@ class ShowSessionViewSet(
         )
     )
     serializer_class = ShowSessionSerializer
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get_serializer_class(self):
         if self.action == "list" or self.action == "retrieve":
@@ -112,8 +114,8 @@ class AstronomyShowViewSet(
 ):
     queryset = AstronomyShow.objects.all()
     serializer_class = AstronomyShowSerializer
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get_serializer_class(self):
         if self.action == "list" or self.action == "retrieve":
@@ -129,12 +131,12 @@ class ReservationPagination(PageNumberPagination):
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
