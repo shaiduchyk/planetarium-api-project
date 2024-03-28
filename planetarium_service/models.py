@@ -1,14 +1,19 @@
 import pathlib
 import uuid
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
 
 
 class CustomUser(AbstractUser):
-    pass
+    groups = models.ManyToManyField(
+        Group, related_name="custom_user_groups"
+    )
+    user_permissions = models.ManyToManyField(
+        Permission, related_name='custom_user_permissions'
+    )
 
 
 def movie_image_path(instance, filename) -> pathlib.Path:

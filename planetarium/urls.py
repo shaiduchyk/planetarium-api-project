@@ -24,4 +24,5 @@ urlpatterns = [
         "api/planetarium/",
         include("planetarium_service.urls", namespace="planetarium")
     ),
+    path("api/user/", include("users.urls", namespace="user")),
 ]

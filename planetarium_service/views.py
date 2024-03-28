@@ -1,7 +1,10 @@
 from django.contrib.admin import actions
+from django.db.models import Count, F
 from django.shortcuts import render
 from rest_framework import viewsets, mixins, status
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet
 
@@ -13,6 +16,7 @@ from planetarium_service.models import (
     Reservation,
     Ticket,
 )
+from planetarium_service.permissions import IsAdminOrIfAuthenticatedReadOnly
 from planetarium_service.serializers import (
     PlanetariumDomeSerializer,
     ShowSessionSerializer,
@@ -22,7 +26,8 @@ from planetarium_service.serializers import (
     TicketSerializer,
     PlanetariumDomeImageSerializer,
     PlanetariumDomeDetailSerializer,
-    AstronomyShowListSerializer, ShowSessionListSerializer
+    AstronomyShowListSerializer,
+    ShowSessionListSerializer
 )
 
 
@@ -36,6 +41,8 @@ class PlanetariumDomeViewSet(
 ):
     queryset = PlanetariumDome.objects.all()
     serializer_class = PlanetariumDomeSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    authentication_classes = (TokenAuthentication,)
 
     @action(
         methods=["POST"],
@@ -70,8 +77,20 @@ class ShowSessionViewSet(
     mixins.DestroyModelMixin,
     GenericViewSet
 ):
-    queryset = ShowSession.objects.all()
+    queryset = (
+        ShowSession.objects.all()
+        .select_related("astronomy_show", "planetarium_dome")
+        .annotate(
+            tickets_available=(
+                    F("planetarium_dome__rows")
+                    * F("planetarium_dome__seats_in_row")
+                    - Count("tickets")
+            )
+        )
+    )
     serializer_class = ShowSessionSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    authentication_classes = (TokenAuthentication,)
 
     def get_serializer_class(self):
         if self.action == "list" or self.action == "retrieve":
@@ -93,6 +112,8 @@ class AstronomyShowViewSet(
 ):
     queryset = AstronomyShow.objects.all()
     serializer_class = AstronomyShowSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    authentication_classes = (TokenAuthentication,)
 
     def get_serializer_class(self):
         if self.action == "list" or self.action == "retrieve":
@@ -100,11 +121,20 @@ class AstronomyShowViewSet(
         return self.serializer_class
 
 
+class ReservationPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 100
+
+
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    authentication_classes = (TokenAuthentication,)
 
 
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+    authentication_classes = (TokenAuthentication,)
