@@ -14,22 +14,30 @@ class UserURLsTest(APITestCase):
     def test_register_url(self):
         url = reverse("user:create")
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(
+            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
     def test_token_url(self):
         url = reverse("user:token_obtain_pair")
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(
+            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
     def test_token_refresh_url(self):
         url = reverse("user:token_refresh")
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(
+            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
     def test_token_verify_url(self):
         url = reverse("user:token_verify")
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(
+            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
     def test_manage_user_url(self):
         url = reverse("user:manage")
