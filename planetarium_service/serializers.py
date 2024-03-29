@@ -1,7 +1,4 @@
-from django.db import transaction
-from django.db.models import QuerySet
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from planetarium_service.models import (
     PlanetariumDome,

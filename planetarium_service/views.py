@@ -1,13 +1,12 @@
-from django.contrib.admin import actions
 from django.db.models import Count, F
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
+
 from rest_framework import viewsets, mixins, status
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from planetarium_service.models import (
@@ -18,7 +17,6 @@ from planetarium_service.models import (
     Reservation,
     Ticket,
 )
-
 from planetarium_service.serializers import (
     PlanetariumDomeSerializer,
     ShowSessionSerializer,
@@ -29,7 +27,9 @@ from planetarium_service.serializers import (
     PlanetariumDomeImageSerializer,
     PlanetariumDomeDetailSerializer,
     AstronomyShowListSerializer,
-    ShowSessionListSerializer, TicketListSerializer, ReservationListSerializer
+    ShowSessionListSerializer,
+    TicketListSerializer,
+    ReservationListSerializer
 )
 
 
@@ -152,8 +152,8 @@ class TicketViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    # def get_queryset(self):
-    #     return Ticket.objects.filter(reservation__user=self.request.user)
+    def get_queryset(self):
+        return Ticket.objects.filter(reservation__user=self.request.user)
 
     def get_serializer_class(self):
         if self.action == "list":
