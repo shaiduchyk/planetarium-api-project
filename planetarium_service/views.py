@@ -29,7 +29,7 @@ from planetarium_service.serializers import (
     PlanetariumDomeImageSerializer,
     PlanetariumDomeDetailSerializer,
     AstronomyShowListSerializer,
-    ShowSessionListSerializer
+    ShowSessionListSerializer, TicketListSerializer, ReservationListSerializer
 )
 
 
@@ -139,6 +139,11 @@ class ReservationViewSet(
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ReservationListSerializer
+        return self.serializer_class
+
 
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
@@ -147,8 +152,13 @@ class TicketViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def get_queryset(self):
-        return Ticket.objects.filter(reservation__user=self.request.user)
+    # def get_queryset(self):
+    #     return Ticket.objects.filter(reservation__user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TicketListSerializer
+        return self.serializer_class
 
     def perform_create(self, serializer):
         reservation_id = self.request.data.get("reservation")

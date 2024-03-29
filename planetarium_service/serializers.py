@@ -137,7 +137,25 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 class TicketListSerializer(TicketSerializer):
-    show_session = ShowSessionListSerializer(many=False, read_only=True)
+    show_session = serializers.SerializerMethodField()
+    reservation = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Ticket
+        fields = (
+            "id",
+            "row",
+            "seat",
+            "show_session",
+            "planetarium_dome",
+            "reservation",
+        )
+
+    def get_show_session(self, obj):
+        return obj.show_session.astronomy_show.title
+
+    def get_reservation(self, obj):
+        return obj.reservation.user.username
 
 
 class ReservationSerializer(serializers.ModelSerializer):
@@ -153,3 +171,11 @@ class ReservationSerializer(serializers.ModelSerializer):
 
 class ReservationListSerializer(ReservationSerializer):
     tickets = TicketListSerializer(many=True, read_only=True)
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Reservation
+        fields = ("id", "user", "tickets")
+
+    def get_user(self, obj):
+        return obj.user.username
