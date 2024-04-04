@@ -3,12 +3,11 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from planetarium_service.pagination import ReservationPagination
 from planetarium_service.models import (
     PlanetariumDome,
     ShowSession,
@@ -44,7 +43,6 @@ class PlanetariumDomeViewSet(
     queryset = PlanetariumDome.objects.all()
     serializer_class = PlanetariumDomeSerializer
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
 
     @action(
         methods=["POST"],
@@ -80,7 +78,7 @@ class ShowSessionViewSet(
     GenericViewSet
 ):
     queryset = (
-        ShowSession.objects.all()
+        ShowSession.objects
         .select_related("astronomy_show", "planetarium_dome")
         .annotate(
             tickets_available=(
@@ -92,7 +90,6 @@ class ShowSessionViewSet(
     )
     serializer_class = ShowSessionSerializer
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
 
     def get_serializer_class(self):
         if self.action == "list" or self.action == "retrieve":
@@ -115,17 +112,11 @@ class AstronomyShowViewSet(
     queryset = AstronomyShow.objects.all()
     serializer_class = AstronomyShowSerializer
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
 
     def get_serializer_class(self):
         if self.action == "list" or self.action == "retrieve":
             return AstronomyShowListSerializer
         return self.serializer_class
-
-
-class ReservationPagination(PageNumberPagination):
-    page_size = 10
-    max_page_size = 100
 
 
 class ReservationViewSet(
@@ -137,7 +128,6 @@ class ReservationViewSet(
     serializer_class = ReservationSerializer
     pagination_class = ReservationPagination
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -148,9 +138,7 @@ class ReservationViewSet(
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
-
     permission_classes = [IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
         return Ticket.objects.filter(reservation__user=self.request.user)

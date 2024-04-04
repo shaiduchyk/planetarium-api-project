@@ -45,7 +45,7 @@ class ShowTheme(models.Model):
 
 class AstronomyShow(models.Model):
     title = models.CharField(max_length=63)
-    themes = models.ManyToManyField(ShowTheme)
+    themes = models.ManyToManyField(ShowTheme, related_name="astronomy_shows")
     description = models.TextField()
 
     def __str__(self):
@@ -56,9 +56,11 @@ class AstronomyShow(models.Model):
 
 
 class ShowSession(models.Model):
-    astronomy_show = models.ForeignKey(AstronomyShow, on_delete=models.CASCADE)
+    astronomy_show = models.ForeignKey(
+        AstronomyShow, on_delete=models.CASCADE, related_name="show_sessions"
+    )
     planetarium_dome = models.ForeignKey(
-        PlanetariumDome, on_delete=models.CASCADE
+        PlanetariumDome, on_delete=models.CASCADE, related_name="show_sessions"
     )
     show_time = models.DateTimeField(auto_now_add=True)
 
@@ -69,7 +71,8 @@ class ShowSession(models.Model):
 class Reservation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
         related_name="reservations"
     )
 
@@ -137,7 +140,9 @@ class Ticket(models.Model):
                 f"Session info: {self.show_session}\n")
 
     class Meta:
-        unique_together = (
-            "show_session", "reservation", "row", "seat"
-        )
+        constraints = [
+            models.UniqueConstraint(
+                fields=["show_session", "reservation", "row", "seat"],
+                name="unique_ticket")
+        ]
         ordering = ("row", "seat")
